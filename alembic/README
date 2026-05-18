@@ -1,0 +1,20 @@
+Alembic migration environment for Travel Planner API.
+
+Uses an async PostgreSQL engine (asyncpg) via SQLAlchemy 2.
+
+Common commands:
+
+  Apply all pending migrations:
+    uv run alembic upgrade head
+
+  Create a new migration from ORM model changes:
+    uv run alembic revision --autogenerate -m "describe change"
+
+  Roll back one migration:
+    uv run alembic downgrade -1
+
+  Show current revision:
+    uv run alembic current
+
+  Show migration history:
+    uv run alembic history

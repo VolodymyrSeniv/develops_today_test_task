@@ -1,0 +1,340 @@
+{
+  "info": {
+    "name": "Travel Planner API",
+    "description": "CRUD API for managing travel projects and artwork-based places to visit.\n\nBase URL: http://localhost:8000/api/v1\n\nArtwork data is sourced from the Art Institute of Chicago API.\nExample artwork IDs to use:\n- 27992 — A Sunday on La Grande Jatte (Georges Seurat)\n- 111628 — Nighthawks (Edward Hopper)\n- 16487 — American Gothic (Grant Wood)\n- 14586 — The Bedroom (Van Gogh)\n- 20684 — The Old Guitarist (Picasso)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "project_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "place_id",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:8000/health",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["health"]
+            },
+            "description": "Returns the application health status."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Projects",
+      "item": [
+        {
+          "name": "List Projects",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/projects?page=1&page_size=10",
+              "host": ["{{base_url}}"],
+              "path": ["projects"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "page_size", "value": "10" },
+                { "key": "is_completed", "value": "false", "disabled": true }
+              ]
+            },
+            "description": "Returns a paginated list of travel projects.\n\nQuery parameters:\n- `page` (int, default 1)\n- `page_size` (int, default 10, max 100)\n- `is_completed` (bool, optional) — filter by completion status"
+          }
+        },
+        {
+          "name": "Create Project (no places)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set('project_id', pm.response.json().id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Chicago Art Tour\",\n  \"description\": \"A curated tour of the Art Institute of Chicago\",\n  \"start_date\": \"2026-07-01\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/projects",
+              "host": ["{{base_url}}"],
+              "path": ["projects"]
+            },
+            "description": "Creates a new travel project. Optionally include a `places` array of artwork IDs."
+          }
+        },
+        {
+          "name": "Create Project (with places)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set('project_id', pm.response.json().id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Impressionist Journey\",\n  \"description\": \"Key impressionist works\",\n  \"start_date\": \"2026-08-15\",\n  \"places\": [\n    { \"external_id\": 27992 },\n    { \"external_id\": 14586 }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/projects",
+              "host": ["{{base_url}}"],
+              "path": ["projects"]
+            },
+            "description": "Creates a project with artwork places in one request. Each place is validated against the Art Institute of Chicago API. Max 10 places."
+          }
+        },
+        {
+          "name": "Get Project",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "{{project_id}}"]
+            },
+            "description": "Returns a single project with its full list of places."
+          }
+        },
+        {
+          "name": "Update Project",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Trip Name\",\n  \"description\": \"Updated description\",\n  \"start_date\": \"2026-09-01\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "{{project_id}}"]
+            },
+            "description": "Updates project fields. Only include fields you want to change."
+          }
+        },
+        {
+          "name": "Delete Project",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "{{project_id}}"]
+            },
+            "description": "Deletes a project. Returns 409 if any of its places have been visited."
+          }
+        },
+        {
+          "name": "List Projects — filter completed",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/projects?is_completed=true",
+              "host": ["{{base_url}}"],
+              "path": ["projects"],
+              "query": [{ "key": "is_completed", "value": "true" }]
+            }
+          }
+        },
+        {
+          "name": "Create Project — 422 too many places",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Too Many Places\",\n  \"places\": [\n    {\"external_id\": 1},{\"external_id\": 2},{\"external_id\": 3},\n    {\"external_id\": 4},{\"external_id\": 5},{\"external_id\": 6},\n    {\"external_id\": 7},{\"external_id\": 8},{\"external_id\": 9},\n    {\"external_id\": 10},{\"external_id\": 11}\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/projects",
+              "host": ["{{base_url}}"],
+              "path": ["projects"]
+            },
+            "description": "Should return 422 — exceeds the 10-place limit."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Places",
+      "item": [
+        {
+          "name": "List Places",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/places?page=1&page_size=10",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "{{project_id}}", "places"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "page_size", "value": "10" },
+                { "key": "is_visited", "value": "false", "disabled": true }
+              ]
+            },
+            "description": "Returns paginated places for a project.\n\nOptional filter: `is_visited=true|false`"
+          }
+        },
+        {
+          "name": "Add Place",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set('place_id', pm.response.json().id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_id\": 27992\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/places",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "{{project_id}}", "places"]
+            },
+            "description": "Adds an artwork to a project. The artwork ID is validated against the Art Institute of Chicago API before being stored.\n\nArtwork IDs to try:\n- 27992 — A Sunday on La Grande Jatte\n- 111628 — Nighthawks\n- 16487 — American Gothic\n- 14586 — The Bedroom\n- 20684 — The Old Guitarist"
+          }
+        },
+        {
+          "name": "Get Place",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/places/{{place_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "{{project_id}}", "places", "{{place_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Place — add notes",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"An absolute masterpiece of pointillist technique!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/places/{{place_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "{{project_id}}", "places", "{{place_id}}"]
+            },
+            "description": "Updates notes for a place. Only include fields you want to update."
+          }
+        },
+        {
+          "name": "Update Place — mark visited",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_visited\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/places/{{place_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "{{project_id}}", "places", "{{place_id}}"]
+            },
+            "description": "Marks a place as visited. When all places in the project are visited, the project is automatically marked as completed."
+          }
+        },
+        {
+          "name": "Add Place — 409 duplicate",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_id\": 27992\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/places",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "{{project_id}}", "places"]
+            },
+            "description": "Should return 409 — artwork already exists in the project."
+          }
+        },
+        {
+          "name": "Add Place — 422 not found in API",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_id\": 999999999\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/places",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "{{project_id}}", "places"]
+            },
+            "description": "Should return 422 — artwork ID does not exist in the Art Institute API."
+          }
+        },
+        {
+          "name": "List Places — filter visited",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/places?is_visited=true",
+              "host": ["{{base_url}}"],
+              "path": ["projects", "{{project_id}}", "places"],
+              "query": [{ "key": "is_visited", "value": "true" }]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

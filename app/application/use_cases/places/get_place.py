@@ -1,0 +1,24 @@
+from app.application.ports.place_repository import AbstractPlaceRepository
+from app.application.ports.project_repository import AbstractProjectRepository
+from app.domain.entities.place import Place
+from app.domain.exceptions import PlaceNotFound, ProjectNotFound
+
+
+class GetPlaceUseCase:
+    def __init__(
+        self,
+        project_repo: AbstractProjectRepository,
+        place_repo: AbstractPlaceRepository,
+    ) -> None:
+        self._project_repo = project_repo
+        self._place_repo = place_repo
+
+    async def execute(self, project_id: int, place_id: int) -> Place:
+        project = await self._project_repo.get_by_id(project_id)
+        if project is None:
+            raise ProjectNotFound(f"Project {project_id} not found")
+
+        place = await self._place_repo.get_by_id(project_id, place_id)
+        if place is None:
+            raise PlaceNotFound(f"Place {place_id} not found in project {project_id}")
+        return place
